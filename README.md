@@ -103,6 +103,8 @@ bind-address = *
 
 root@mk:~# systemctl restart mariadb
 
+# Check for error, if any
+
 root@mk:~# grep ssl /var/log/syslog
 root@mk:~# grep ssl /var/log/syslog | grep key
 root@mk:~# grep mysqld /var/log/syslog | grep -i ssl
