@@ -51,8 +51,8 @@ root@mk:~# mkcert -h
 
 ```bash
 root@mk:~# cd /etc/mysql
-root@mk:~# mkdir -vp ssl
-root@mk:~# cd ssl
+root@mk:/etc/mysql# mkdir -vp ssl
+root@mk:/etc/mysql# cd ssl
 
 root@mk:/etc/mysql/ssl# mkcert -install
 Created a new local CA 💥
