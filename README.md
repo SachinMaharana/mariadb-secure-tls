@@ -47,37 +47,42 @@ root@mk:~# mv mkcert /usr/local/bin/
 root@mk:~# mkcert -h
 ```
 
-## Create Certificates
+## Create self-signed certificates
 
 ```bash
 root@mk:~# cd /etc/mysql
 root@mk:~# mkdir -vp ssl
 root@mk:~# cd ssl
 
-mkcert -install
+root@mk:/etc/mysql/ssl# mkcert -install
+Created a new local CA 💥
+The local CA is now installed in the system trust store! ⚡️
 
-cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
+root@mk:/etc/mysql/ssl# cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
 
-mkcert -key-file mariadb-server.key -cert-file mariadb-server.crt 202.182.110.84
+root@mk:/etc/mysql/ssl# mkcert -key-file mariadb-server.key -cert-file mariadb-server.crt 202.182.110.84
 
-openssl rsa -in mariadb-server.key -out mariadb-server.key
+# convert to rsa type
+root@mk:/etc/mysql/ssl# openssl rsa -in mariadb-server.key -out mariadb-server.key
 
-mkcert --client -key-file mariadb-client.key -cert-file mariadb-client.crt 02.182.110.84
+root@mk:/etc/mysql/ssl# mkcert --client -key-file mariadb-client.key -cert-file mariadb-client.crt 202.182.110.84
 
-openssl rsa -in mariadb-client.key -out mariadb-client.key
+# convert to rsa type
+root@mk:/etc/mysql/ssl# openssl rsa -in mariadb-client.key -out mariadb-client.key
 
 root@mk:/etc/mysql/ssl# ls
 mariadb-client.crt  mariadb-client.key  mariadb-server.crt  mariadb-server.key  rootCA.pem
 
-openssl verify -CAfile rootCA.pem mariadb-server.crt mariadb-client.crt
+root@mk:/etc/mysql/ssl# openssl verify -CAfile rootCA.pem mariadb-server.crt mariadb-client.crt
 
-openssl x509 -in mariadb-server.crt -text -noout
-
-
+root@mk:/etc/mysql/ssl# openssl x509 -in mariadb-server.crt -text -noout
 
 ```
 
-```
+## MariaDB SSL Setup
+
+```bash
+root@mk:~# mysql -u root -p
 MariaDB [(none)]> show variables like '%ssl';
 +---------------+----------+
 | Variable_name | Value    |
@@ -86,9 +91,9 @@ MariaDB [(none)]> show variables like '%ssl';
 | have_ssl      | DISABLED |
 +---------------+----------+
 
-chown -Rv mysql:root /etc/mysql/ssl/
+root@mk:~# chown -Rv mysql:root /etc/mysql/ssl/
 
-vim /etc/mysql/mariadb.cnf
+root@mk:~# vim /etc/mysql/mariadb.cnf
 [mysqld]
 ssl-ca=/etc/mysql/ssl/rootCA.pem
 ssl-cert=/etc/mysql/ssl/mariadb-server.crt
@@ -96,14 +101,14 @@ ssl-key=/etc/mysql/ssl/mariadb-server.key
 tls_version = TLSv1.2,TLSv1.3
 bind-address = *
 
-systemctl restart mariadb
+root@mk:~# systemctl restart mariadb
 
-grep ssl /var/log/syslog
-grep ssl /var/log/syslog | grep key
-grep mysqld /var/log/syslog | grep -i ssl
+root@mk:~# grep ssl /var/log/syslog
+root@mk:~# grep ssl /var/log/syslog | grep key
+root@mk:~# grep mysqld /var/log/syslog | grep -i ssl
 
 
-vim /etc/mysql/my.cnf
+root@mk:~# vim /etc/mysql/my.cnf
 [client]
 port            = 3306
 socket          = /var/run/mysqld/mysqld.sock
@@ -111,6 +116,7 @@ ssl-ca=/etc/mysql/ssl/rootCA.pem
 ssl-cert=/etc/mysql/ssl/mariadb-client.crt
 ssl-key=/etc/mysql/ssl/mariadb-client.key
 
+root@mk:~# mysql -u root -p
 MariaDB [(none)]>  SHOW VARIABLES LIKE '%ssl%';
 +---------------------+-----------------------------------+
 | Variable_name       | Value                             |
@@ -126,48 +132,43 @@ mysql  Ver 15.1 Distrib 10.4.18-MariaDB, for debian-linux-gnu (x86_64) using rea
 Connection id:		36
 Current database:
 Current user:		root@localhost
-SSL:			Cipher in use is TLS_AES_256_GCM_SHA384
+SSL:			Cipher in use is TLS_AES_256_GCM_SHA384 // SSL connection
 
 ```
 
+## Mariadb Client Connection
+
 ```bash
-mysql -u root -p
+root@mk:~# mysql -u root -p
+
 CREATE DATABASE foo;
-GRANT ALL ON foo.* TO bar@202.182.110.1 IDENTIFIED BY 'mypassword' REQUIRE SSL;
-flush privileges;
-
-mysql -u bar -p -h 202.182.110.1 foo
-
-GRANT ALL PRIVILEGES ON foo.* TO 'user1'@'%' IDENTIFIED BY 'password1' REQUIRE SSL;
-FLUSH PRIVILEGES;
-SHOW GRANTS FOR 'user1'@202.182.110.1;
-
-mysql -u user4 -p -h 202.182.110.84
-
-mysql -u user2 -h localhost -p --ssl-key=/etc/mysql/ssl/mariadb-client.key --ssl-cert=/etc/mysql/ssl/mariadb-client.crt --ssl-ca=/etc/mysql/ssl/rootCA.pem
-
-
 CREATE USER 'user5'@202.182.110.84 IDENTIFIED BY 'pass';
 GRANT ALL PRIVILEGES ON foo.* TO 'user5'@202.182.110.84 IDENTIFIED BY 'pass' REQUIRE SSL;
 FLUSH PRIVILEGES;
-mysql -u user5 -p -h 202.182.110.84 //error
-mysql -u user5 -h 202.182.110.84 -p --ssl-key=/etc/mysql/ssl/mariadb-client.key --ssl-cert=/etc/mysql/ssl/mariadb-client.crt --ssl-ca=/etc/mysql/ssl/rootCA.pem
+
+root@mk:~#  mysql -u user5 -p -h 202.182.110.84 //error
+root@mk:~#  mysql -u user5 -h 202.182.110.84 -p --ssl-key=/etc/mysql/ssl/mariadb-client.key --ssl-cert=/etc/mysql/ssl/mariadb-client.crt --ssl-ca=/etc/mysql/ssl/rootCA.pem
 ```
 
+## Python Client Connection
+
 ```bash
-apt-get install libmysqlclient-dev
-apt-get install gcc
-pip3 install mysqlclient
+root@mk:~# apt-get install libmysqlclient-dev
+root@mk:~# apt-get install gcc
+root@mk:~# pip3 install mysqlclient
+root@mk:~# python3 index.py
 ```
 
-```bash
-curl https://get.volta.sh | bash
-exec -l $SHELL
-volta install node
+## Nodejs Client Connection
 
-mkdir js
-cd js
-npm init -y
-npm install -S mariadb
-node index.js
+```bash
+root@mk:~# curl https://get.volta.sh | bash
+root@mk:~# exec -l $SHELL
+root@mk:~# volta install node
+
+root@mk:~# mkdir js
+root@mk:~# cd js
+root@mk:~# npm init -y
+root@mk:~# npm install -S mariadb
+root@mk:~# node index.js
 ```
