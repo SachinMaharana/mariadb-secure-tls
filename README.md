@@ -31,22 +31,28 @@ MariaDB [(none)]> SELECT VERSION();
 
 ```
 
+## Install mkcert (self-signed certificates)
+
+https://github.com/FiloSottile/mkcert/
+
 ```bash
-wget -q https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-amd64
+root@mk:~# wget -q https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-amd64
 
-mv mkcert-v1.4.3-linux-amd64 mkcert
+root@mk:~# mv mkcert-v1.4.3-linux-amd64 mkcert
 
-chmod +x mkcert
+root@mk:~# chmod +x mkcert
 
-mv mkcert /usr/local/bin/
+root@mk:~# mv mkcert /usr/local/bin/
 
-mkcert -h
+root@mk:~# mkcert -h
 ```
 
+## Create Certificates
+
 ```bash
-cd /etc/mysql
-mkdir -vp ssl
-cd ssl
+root@mk:~# cd /etc/mysql
+root@mk:~# mkdir -vp ssl
+root@mk:~# cd ssl
 
 mkcert -install
 
