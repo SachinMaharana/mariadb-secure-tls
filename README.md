@@ -1,22 +1,34 @@
 # Mariadb SSL and secure connections from clients
 
+## Install MariaDB (Ubuntu 18.04)
+
 ```bash
-apt update -y
+root@mk:~# apt update -y
 
-apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+root@mk:~# apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
 
-add-apt-repository "deb [arch=amd64,arm64,ppc64el] http://mariadb.mirror.liquidtelecom.com/repo/10.4/ubuntu $(lsb_release -cs) main"
+root@mk:~# add-apt-repository "deb [arch=amd64,arm64,ppc64el] http://mariadb.mirror.liquidtelecom.com/repo/10.4/ubuntu $(lsb_release -cs) main"
 
-apt update
+root@mk:~# apt update
 
-apt -y install mariadb-server mariadb-client
+root@mk:~# apt -y install mariadb-server mariadb-client
 ```
 
-```bash
-mysql_secure_installation
+## MariaDB Setup
 
-mysql -u root -p
-SELECT VERSION();
+```bash
+root@mk:~# mysql_secure_installation
+
+root@mk:~# mysql -u root -p
+
+MariaDB [(none)]> SELECT VERSION();
++--------------------------------------------+
+| VERSION()                                  |
++--------------------------------------------+
+| 10.4.18-MariaDB-1:10.4.18+maria~bionic-log |
++--------------------------------------------+
+1 row in set (0.001 sec)
+
 ```
 
 ```bash

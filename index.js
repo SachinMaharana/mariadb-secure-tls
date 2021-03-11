@@ -25,5 +25,6 @@ mariadb
   })
   .then((conn) => {
     console.log("connected");
+    conn.end();
   })
   .catch((err) => console.log(err));
