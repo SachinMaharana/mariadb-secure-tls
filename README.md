@@ -1,5 +1,7 @@
 # Mariadb SSL and secure connections from clients
 
+By default, MariaDB transmits data between the server and clients without encrypting it. However, in cases where the server and client exist on separate networks or they are in a high-risk network, MariaDB allows you to encrypt data in transit between the server and clients using the Transport Layer Security (TLS) protocol. This document provides a way to enable tls for mariadb.
+
 ## Install MariaDB (Ubuntu 18.04)
 
 ```bash
